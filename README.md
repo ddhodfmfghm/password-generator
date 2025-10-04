@@ -37,3 +37,8 @@
 ```bash
 git clone https://github.com/ddhodfmfghm/password-generator.git
 cd password-generator
+```
+```bash
+pip install flask
+```
+- **Запустите main.py**
