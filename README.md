@@ -35,5 +35,5 @@
 1. **Клонируйте репозиторий**
 
 ```bash
-git clone https://github.com/your-username/password-generator.git
+git clone https://github.com/ddhodfmfghm/password-generator.git
 cd password-generator
