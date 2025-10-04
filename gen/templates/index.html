@@ -1,0 +1,82 @@
+<!-- templates/index.html -->
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Генератор паролей</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+</head>
+<body>
+    <div class="container">
+        <h1>Генератор паролей</h1>
+
+        <form method="POST">
+            <div class="form-group">
+                <label>Длина пароля:</label>
+                <input type="number" name="length" min="4" max="50" value="12">
+            </div>
+
+            <div class="form-group">
+                <label>Сложность пароля:</label>
+                <div class="radio-group">
+                    <label class="radio-option">
+                        <input type="radio" name="complexity" value="1" checked>
+                        <span class="radio-custom"></span>
+                        <span class="radio-label">Простой (только цифры)</span>
+                    </label>
+                    <label class="radio-option">
+                        <input type="radio" name="complexity" value="2">
+                        <span class="radio-custom"></span>
+                        <span class="radio-label">Средний (буквы + цифры)</span>
+                    </label>
+                    <label class="radio-option">
+                        <input type="radio" name="complexity" value="3">
+                        <span class="radio-custom"></span>
+                        <span class="radio-label">Сложный (буквы + цифры + символы)</span>
+                    </label>
+                </div>
+            </div>
+
+            <button type="submit">Сгенерировать пароль</button>
+        </form>
+
+        {% if password %}
+        <div class="result">
+            <h3>Ваш новый пароль:</h3>
+            <div class="password" id="passwordText">{{ password }}</div>
+            <button onclick="copyPassword()" id="copyBtn">📋 Копировать пароль</button>
+        </div>
+        {% endif %}
+    </div>
+
+    <script>
+        function copyPassword() {
+            const passwordText = document.getElementById('passwordText').textContent;
+            navigator.clipboard.writeText(passwordText).then(() => {
+                const btn = document.getElementById('copyBtn');
+                btn.textContent = '✅ Скопировано!';
+                btn.classList.add('copied');
+
+                setTimeout(() => {
+                    btn.textContent = '📋 Копировать пароль';
+                    btn.classList.remove('copied');
+                }, 2000);
+            });
+        }
+
+        document.addEventListener('DOMContentLoaded', function() {
+            const radioOptions = document.querySelectorAll('.radio-option');
+
+            radioOptions.forEach(option => {
+                option.addEventListener('click', function() {
+                    radioOptions.forEach(opt => opt.classList.remove('selected'));
+                    this.classList.add('selected');
+                    const radio = this.querySelector('input[type="radio"]');
+                    radio.checked = true;
+                });
+            });
+        });
+    </script>
+</body>
+</html>
