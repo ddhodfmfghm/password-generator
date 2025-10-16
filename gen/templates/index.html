@@ -41,15 +41,16 @@
             <button type="submit">Сгенерировать пароль</button>
         </form>
 
+        <p style="text-align: center; margin-top: 20px;">
+            <a href="{{ url_for('logout') }}">Выйти из системы</a>
+        </p>
+
         {% if password %}
         <div class="result">
             <h3>Ваш новый пароль:</h3>
             <div class="password" id="passwordText">{{ password }}</div>
-
         </div>
         {% endif %}
     </div>
-
-
 </body>
 </html>
