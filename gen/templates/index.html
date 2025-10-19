@@ -41,14 +41,32 @@
             <button type="submit">Сгенерировать пароль</button>
         </form>
 
-        <p style="text-align: center; margin-top: 20px;">
+        {% with messages = get_flashed_messages(with_categories=true) %}
+            {% if messages %}
+                {% for category, message in messages %}
+                    <div class="flash {{ category }}">{{ message }}</div>
+                {% endfor %}
+            {% endif %}
+        {% endwith %}
+
+        <div class="links">
+            <a href="{{ url_for('my_passwords') }}">Мои сохраненные пароли</a> |
             <a href="{{ url_for('logout') }}">Выйти из системы</a>
-        </p>
+        </div>
 
         {% if password %}
         <div class="result">
             <h3>Ваш новый пароль:</h3>
             <div class="password" id="passwordText">{{ password }}</div>
+
+            <form method="POST" action="{{ url_for('save_password') }}">
+                <div class="form-group">
+                    <label for="website">Для какого сайта этот пароль?</label>
+                    <input type="text" name="website" id="website" placeholder="Введите название сайта" required>
+                    <input type="hidden" name="password" value="{{ password }}">
+                </div>
+                <button type="submit">Сохранить пароль</button>
+            </form>
         </div>
         {% endif %}
     </div>
