@@ -68,9 +68,9 @@ def add_user(username, password, role='user'):
     save_users(users)
 
 
-def save_user_password(username, website, password):
+def save_user_password(username, login1, website, password):
     with open(PASSWORDS_FILE, 'a', encoding='utf-8') as f:
-        f.write(f"{username}|{website}|{password}\n")
+        f.write(f"{username}|{login1}|{website}|{password}\n")
 
 
 def load_user_passwords(username):
@@ -79,9 +79,10 @@ def load_user_passwords(username):
         with open(PASSWORDS_FILE, 'r', encoding='utf-8') as f:
             for line in f:
                 if line.strip():
-                    user, website, pwd = line.strip().split('|')
+                    user, login1, website, pwd = line.strip().split('|')
                     if user == username:
                         passwords.append({
+                            'login1': login1,
                             'website': website,
                             'password': pwd
                         })
@@ -179,6 +180,7 @@ def index():
 @app.route('/save_password', methods=['POST'])
 @login_required
 def save_password():
+    login1 = request.form['login1']
     website = request.form['website']
     password = request.form['password']
 
@@ -186,7 +188,7 @@ def save_password():
         flash('Введите название сайта', 'error')
         return redirect(url_for('index'))
 
-    save_user_password(session['username'], website, password)
+    save_user_password(session['username'],login1, website, password)
     return redirect(url_for('index'))
 
 
@@ -198,4 +200,4 @@ def my_passwords():
 
 
 if __name__ == '__main__':
-    app.run(debug=True)
+    app.run(debug=True, host='0.0.0.0', port=5000)

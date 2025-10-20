@@ -15,16 +15,50 @@ body {
     padding: 20px;
 }
 
+
+
+
+
+/* Устанавливаем body как flex-контейнер */
+body {
+    display: flex;
+    flex-direction: column; /* Элементы располагаются вертикально */
+    min-height: 10vh;      /* Минимальная высота body равна высоте окна браузера */
+    margin: 0;
+}
+
+/* Основное содержимое страницы будет занимать все доступное пространство */
 .container {
+    flex: 1;
+}
+
+/* Стилизация футера */
+.site-footer {
+    margin-top: auto;        /* Автоматический верхний отступ прижимает футер к низу */
+    text-align: center;
+    padding: 20px;
+
+    color: #55;
+    border-top: 1px solid #ddd;
+}
+
+
+
+
+
+
+.container {
+
     background: white;
     border-radius: 15px;
     box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
     padding: 40px;
     width: 100%;
-    max-width: 500px;
+    max-width: 800px;
 }
 
 h1 {
+
     text-align: center;
     color: #333;
     margin-bottom: 10px;
@@ -36,6 +70,7 @@ h1::before {
 }
 
 .form-group {
+
     margin-bottom: 25px;
 }
 
@@ -245,10 +280,12 @@ button:active {
 }
 
 .passwords-list {
+
     margin-top: 20px;
 }
 
 .password-item {
+
     display: flex;
     justify-content: space-between;
     align-items: center;
@@ -260,6 +297,7 @@ button:active {
 }
 
 .password-item .website {
+
     font-weight: bold;
     color: #333;
 }
