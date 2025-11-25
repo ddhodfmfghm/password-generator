@@ -15,16 +15,50 @@ body {
     padding: 20px;
 }
 
+
+
+
+
+/* Устанавливаем body как flex-контейнер */
+body {
+    display: flex;
+    flex-direction: column; /* Элементы располагаются вертикально */
+    min-height: 10vh;      /* Минимальная высота body равна высоте окна браузера */
+    margin: 0;
+}
+
+/* Основное содержимое страницы будет занимать все доступное пространство */
 .container {
+    flex: 1;
+}
+
+/* Стилизация футера */
+.site-footer {
+    margin-top: auto;        /* Автоматический верхний отступ прижимает футер к низу */
+    text-align: center;
+    padding: 20px;
+
+    color: #55;
+    border-top: 1px solid #ddd;
+}
+
+
+
+
+
+
+.container {
+
     background: white;
     border-radius: 15px;
     box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
     padding: 40px;
     width: 100%;
-    max-width: 500px;
+    max-width: 800px;
 }
 
 h1 {
+
     text-align: center;
     color: #333;
     margin-bottom: 10px;
@@ -36,6 +70,7 @@ h1::before {
 }
 
 .form-group {
+
     margin-bottom: 25px;
 }
 
@@ -47,7 +82,8 @@ label {
     font-size: 16px;
 }
 
-input[type="number"] {
+input[type="number"],
+input[type="text"] {
     width: 100%;
     padding: 12px;
     border: 2px solid #ddd;
@@ -56,7 +92,8 @@ input[type="number"] {
     transition: all 0.3s;
 }
 
-input[type="number"]:focus {
+input[type="number"]:focus,
+input[type="text"]:focus {
     outline: none;
     border-color: #667eea;
     box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
@@ -202,6 +239,80 @@ button:active {
     box-shadow: 0 5px 15px rgba(40, 167, 69, 0.4);
 }
 
+.links {
+    text-align: center;
+    margin-top: 20px;
+}
+
+.links a {
+    color: #667eea;
+    text-decoration: none;
+    margin: 0 10px;
+}
+
+.links a:hover {
+    text-decoration: underline;
+}
+
+.flash {
+    padding: 10px;
+    margin: 10px 0;
+    border-radius: 5px;
+    text-align: center;
+}
+
+.flash.success {
+    background-color: #d4edda;
+    color: #155724;
+    border: 1px solid #c3e6cb;
+}
+
+.flash.error {
+    background-color: #f8d7da;
+    color: #721c24;
+    border: 1px solid #f5c6cb;
+}
+
+.flash.info {
+    background-color: #d1ecf1;
+    color: #0c5460;
+    border: 1px solid #bee5eb;
+}
+
+.passwords-list {
+
+    margin-top: 20px;
+}
+
+.password-item {
+
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 15px;
+    margin-bottom: 10px;
+    background: #f8f9fa;
+    border-radius: 8px;
+    border-left: 4px solid #667eea;
+}
+
+.password-item .website {
+
+    font-weight: bold;
+    color: #333;
+}
+
+.password-item .password {
+    font-family: 'Courier New', monospace;
+    color: #2c3e50;
+}
+
+.no-passwords {
+    text-align: center;
+    padding: 20px;
+    color: #666;
+}
+
 @media (max-width: 600px) {
     .container {
         padding: 25px;
@@ -224,6 +335,15 @@ button:active {
 
     .radio-option {
         padding: 12px;
+    }
+
+    .password-item {
+        flex-direction: column;
+        align-items: flex-start;
+    }
+
+    .password-item .password {
+        margin-top: 5px;
     }
 }
 

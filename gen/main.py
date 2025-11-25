@@ -5,9 +5,9 @@ from flask import Flask, render_template, request, redirect, url_for, session, f
 app = Flask(__name__)
 app.secret_key = '123'
 
-
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
 USERS_FILE = os.path.join(BASE_DIR, 'users.txt')
+PASSWORDS_FILE = os.path.join(BASE_DIR, 'passwords.txt')
 
 
 def generate_password(length, complexity):
@@ -20,6 +20,7 @@ def generate_password(length, complexity):
 
     password = ''.join(random.choice(chars) for i in range(length))
     return password
+
 
 def load_users():
     users = []
@@ -42,10 +43,12 @@ def load_users():
         users = default_users
     return users
 
+
 def save_users(users):
     with open(USERS_FILE, 'w', encoding='utf-8') as f:
         for user in users:
             f.write(f"{user['username']}|{user['password']}|{user['role']}\n")
+
 
 def user_exists(username):
     users = load_users()
@@ -53,6 +56,7 @@ def user_exists(username):
         if user['username'] == username:
             return True
     return False
+
 
 def add_user(username, password, role='user'):
     users = load_users()
@@ -62,6 +66,30 @@ def add_user(username, password, role='user'):
         'role': role
     })
     save_users(users)
+
+
+def save_user_password(username, login1, website, password):
+    with open(PASSWORDS_FILE, 'a', encoding='utf-8') as f:
+        f.write(f"{username}|{login1}|{website}|{password}\n")
+
+
+def load_user_passwords(username):
+    passwords = []
+    try:
+        with open(PASSWORDS_FILE, 'r', encoding='utf-8') as f:
+            for line in f:
+                if line.strip():
+                    user, login1, website, pwd = line.strip().split('|')
+                    if user == username:
+                        passwords.append({
+                            'login1': login1,
+                            'website': website,
+                            'password': pwd
+                        })
+    except FileNotFoundError:
+        pass
+    return passwords
+
 
 # Декоратор для проверки аутентификации
 def login_required(f):
@@ -91,7 +119,6 @@ def login():
                 session['username'] = user['username']
                 session['role'] = user.get('role', 'user')
                 print(session)
-                flash(f'Добро пожаловать, {username}!', 'success')
                 user_found = True
                 return redirect(url_for('index'))
 
@@ -99,6 +126,7 @@ def login():
             flash('Неверное имя пользователя или пароль', 'error')
 
     return render_template('login.html')
+
 
 @app.route('/register', methods=['GET', 'POST'])
 def register():
@@ -109,7 +137,6 @@ def register():
         username = request.form['username']
         password = request.form['password']
         confirm_password = request.form['confirm_password']
-
 
         if not username or not password:
             flash('Заполните все поля', 'error')
@@ -129,11 +156,13 @@ def register():
 
     return render_template('register.html')
 
+
 @app.route('/logout')
 def logout():
     session.clear()
     flash('Вы вышли из системы', 'info')
     return redirect(url_for('login'))
+
 
 @app.route('/', methods=['GET', 'POST'])
 @login_required
@@ -147,5 +176,28 @@ def index():
 
     return render_template('index.html', password=password)
 
+
+@app.route('/save_password', methods=['POST'])
+@login_required
+def save_password():
+    login1 = request.form['login1']
+    website = request.form['website']
+    password = request.form['password']
+
+    if not website:
+        flash('Введите название сайта', 'error')
+        return redirect(url_for('index'))
+
+    save_user_password(session['username'],login1, website, password)
+    return redirect(url_for('index'))
+
+
+@app.route('/my_passwords')
+@login_required
+def my_passwords():
+    passwords = load_user_passwords(session['username'])
+    return render_template('passwords.html', passwords=passwords)
+
+
 if __name__ == '__main__':
-    app.run(debug=True)
+    app.run(debug=True, host='0.0.0.0', port=5000)
