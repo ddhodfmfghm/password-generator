@@ -1,13 +1,51 @@
 import random
-import string, os
+import string
+import os
+import sqlite3
 from flask import Flask, render_template, request, redirect, url_for, session, flash
 
 app = Flask(__name__)
 app.secret_key = '123'
 
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
-USERS_FILE = os.path.join(BASE_DIR, 'users.txt')
-PASSWORDS_FILE = os.path.join(BASE_DIR, 'passwords.txt')
+DB_FILE = os.path.join(BASE_DIR, 'database.db')
+
+
+def init_db():
+    conn = sqlite3.connect(DB_FILE)
+    cursor = conn.cursor()
+
+    # Создаем таблицу пользователей
+    cursor.execute('''
+        CREATE TABLE IF NOT EXISTS users (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            username TEXT UNIQUE NOT NULL,
+            password TEXT NOT NULL,
+            role TEXT DEFAULT 'user'
+        )
+    ''')
+
+    # Создаем таблицу паролей
+    cursor.execute('''
+        CREATE TABLE IF NOT EXISTS passwords (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            username TEXT NOT NULL,
+            login1 TEXT,
+            website TEXT NOT NULL,
+            password TEXT NOT NULL
+        )
+    ''')
+
+    # Добавляем стандартных пользователей если их нет
+    cursor.execute("SELECT COUNT(*) FROM users")
+    if cursor.fetchone()[0] == 0:
+        cursor.execute("INSERT INTO users (username, password, role) VALUES (?, ?, ?)",
+                       ('admin', 'admin', 'admin'))
+        cursor.execute("INSERT INTO users (username, password, role) VALUES (?, ?, ?)",
+                       ('user', 'user', 'user'))
+
+    conn.commit()
+    conn.close()
 
 
 def generate_password(length, complexity):
@@ -22,72 +60,41 @@ def generate_password(length, complexity):
     return password
 
 
-def load_users():
-    users = []
-    try:
-        with open(USERS_FILE, 'r', encoding='utf-8') as f:
-            for line in f:
-                if line.strip():
-                    username, password, role = line.strip().split('|')
-                    users.append({
-                        'username': username,
-                        'password': password,
-                        'role': role
-                    })
-    except FileNotFoundError:
-        default_users = [
-            {'username': 'admin', 'password': 'admin', 'role': 'admin'},
-            {'username': 'user', 'password': 'user', 'role': 'user'}
-        ]
-        save_users(default_users)
-        users = default_users
-    return users
-
-
-def save_users(users):
-    with open(USERS_FILE, 'w', encoding='utf-8') as f:
-        for user in users:
-            f.write(f"{user['username']}|{user['password']}|{user['role']}\n")
+def get_db_connection():
+    conn = sqlite3.connect(DB_FILE)
+    conn.row_factory = sqlite3.Row
+    return conn
 
 
 def user_exists(username):
-    users = load_users()
-    for user in users:
-        if user['username'] == username:
-            return True
-    return False
+    conn = get_db_connection()
+    user = conn.execute('SELECT * FROM users WHERE username = ?', (username,)).fetchone()
+    conn.close()
+    return user is not None
 
 
 def add_user(username, password, role='user'):
-    users = load_users()
-    users.append({
-        'username': username,
-        'password': password,
-        'role': role
-    })
-    save_users(users)
+    conn = get_db_connection()
+    conn.execute('INSERT INTO users (username, password, role) VALUES (?, ?, ?)',
+                 (username, password, role))
+    conn.commit()
+    conn.close()
 
 
 def save_user_password(username, login1, website, password):
-    with open(PASSWORDS_FILE, 'a', encoding='utf-8') as f:
-        f.write(f"{username}|{login1}|{website}|{password}\n")
+    conn = get_db_connection()
+    conn.execute('INSERT INTO passwords (username, login1, website, password) VALUES (?, ?, ?, ?)',
+                 (username, login1, website, password))
+    conn.commit()
+    conn.close()
 
 
 def load_user_passwords(username):
-    passwords = []
-    try:
-        with open(PASSWORDS_FILE, 'r', encoding='utf-8') as f:
-            for line in f:
-                if line.strip():
-                    user, login1, website, pwd = line.strip().split('|')
-                    if user == username:
-                        passwords.append({
-                            'login1': login1,
-                            'website': website,
-                            'password': pwd
-                        })
-    except FileNotFoundError:
-        pass
+    conn = get_db_connection()
+    passwords = conn.execute(
+        'SELECT * FROM passwords WHERE username = ?', (username,)
+    ).fetchall()
+    conn.close()
     return passwords
 
 
@@ -112,17 +119,17 @@ def login():
         username = request.form['username']
         password = request.form['password']
 
-        users = load_users()
-        user_found = False
-        for user in users:
-            if user['username'] == username and user['password'] == password:
-                session['username'] = user['username']
-                session['role'] = user.get('role', 'user')
-                print(session)
-                user_found = True
-                return redirect(url_for('index'))
+        conn = get_db_connection()
+        user = conn.execute(
+            'SELECT * FROM users WHERE username = ? AND password = ?', (username, password)
+        ).fetchone()
+        conn.close()
 
-        if not user_found:
+        if user:
+            session['username'] = user['username']
+            session['role'] = user['role']
+            return redirect(url_for('index'))
+        else:
             flash('Неверное имя пользователя или пароль', 'error')
 
     return render_template('login.html')
@@ -149,7 +156,6 @@ def register():
         elif user_exists(username):
             flash('Пользователь с таким именем уже существует', 'error')
         else:
-            # Регистрируем нового пользователя
             add_user(username, password)
             flash('Регистрация успешна! Теперь вы можете войти.', 'success')
             return redirect(url_for('login'))
@@ -188,7 +194,7 @@ def save_password():
         flash('Введите название сайта', 'error')
         return redirect(url_for('index'))
 
-    save_user_password(session['username'],login1, website, password)
+    save_user_password(session['username'], login1, website, password)
     return redirect(url_for('index'))
 
 
@@ -200,4 +206,5 @@ def my_passwords():
 
 
 if __name__ == '__main__':
+    init_db()  # Инициализируем базу данных при запуске
     app.run(debug=True, host='0.0.0.0', port=5000)
