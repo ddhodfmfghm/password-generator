@@ -12,10 +12,10 @@ DB_FILE = os.path.join(BASE_DIR, 'database.db')
 
 
 def init_db():
-    conn = sqlite3.connect(DB_FILE)
-    cursor = conn.cursor()
+    connection = sqlite3.connect(DB_FILE)
+    cursor = connection.cursor()
 
-    # Создаем таблицу пользователей
+
     cursor.execute('''
         CREATE TABLE IF NOT EXISTS users (
             id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -25,7 +25,7 @@ def init_db():
         )
     ''')
 
-    # Создаем таблицу паролей
+
     cursor.execute('''
         CREATE TABLE IF NOT EXISTS passwords (
             id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -36,7 +36,7 @@ def init_db():
         )
     ''')
 
-    # Добавляем стандартных пользователей если их нет
+
     cursor.execute("SELECT COUNT(*) FROM users")
     if cursor.fetchone()[0] == 0:
         cursor.execute("INSERT INTO users (username, password, role) VALUES (?, ?, ?)",
@@ -44,8 +44,8 @@ def init_db():
         cursor.execute("INSERT INTO users (username, password, role) VALUES (?, ?, ?)",
                        ('user', 'user', 'user'))
 
-    conn.commit()
-    conn.close()
+    connection.commit()
+    connection.close()
 
 
 def generate_password(length, complexity):
@@ -61,40 +61,40 @@ def generate_password(length, complexity):
 
 
 def get_db_connection():
-    conn = sqlite3.connect(DB_FILE)
-    conn.row_factory = sqlite3.Row
-    return conn
+    connection = sqlite3.connect(DB_FILE)
+    connection.row_factory = sqlite3.Row
+    return connection
 
 
 def user_exists(username):
-    conn = get_db_connection()
-    user = conn.execute('SELECT * FROM users WHERE username = ?', (username,)).fetchone()
-    conn.close()
+    connection = get_db_connection()
+    user = connection.execute('SELECT * FROM users WHERE username = ?', (username,)).fetchone()
+    connection.close()
     return user is not None
 
 
 def add_user(username, password, role='user'):
-    conn = get_db_connection()
-    conn.execute('INSERT INTO users (username, password, role) VALUES (?, ?, ?)',
+    connection = get_db_connection()
+    connection.execute('INSERT INTO users (username, password, role) VALUES (?, ?, ?)',
                  (username, password, role))
-    conn.commit()
-    conn.close()
+    connection.commit()
+    connection.close()
 
 
 def save_user_password(username, login1, website, password):
-    conn = get_db_connection()
-    conn.execute('INSERT INTO passwords (username, login1, website, password) VALUES (?, ?, ?, ?)',
+    connection = get_db_connection()
+    connection.execute('INSERT INTO passwords (username, login1, website, password) VALUES (?, ?, ?, ?)',
                  (username, login1, website, password))
-    conn.commit()
-    conn.close()
+    connection.commit()
+    connection.close()
 
 
 def load_user_passwords(username):
-    conn = get_db_connection()
-    passwords = conn.execute(
+    connection = get_db_connection()
+    passwords = connection.execute(
         'SELECT * FROM passwords WHERE username = ?', (username,)
     ).fetchall()
-    conn.close()
+    connection.close()
     return passwords
 
 
@@ -119,11 +119,11 @@ def login():
         username = request.form['username']
         password = request.form['password']
 
-        conn = get_db_connection()
-        user = conn.execute(
+        connection = get_db_connection()
+        user = connection.execute(
             'SELECT * FROM users WHERE username = ? AND password = ?', (username, password)
         ).fetchone()
-        conn.close()
+        connection.close()
 
         if user:
             session['username'] = user['username']
@@ -206,5 +206,5 @@ def my_passwords():
 
 
 if __name__ == '__main__':
-    init_db()  # Инициализируем базу данных при запуске
+    init_db()
     app.run(debug=True, host='0.0.0.0', port=5000)
