@@ -10,15 +10,13 @@ app.secret_key = '123'
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
 DB_FILE = os.path.join(BASE_DIR, 'database.db')
 
-
 def init_db():
     connection = sqlite3.connect(DB_FILE)
     cursor = connection.cursor()
 
-
     cursor.execute('''
         CREATE TABLE IF NOT EXISTS users (
-            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            id INTEGER PRIMARY KEY,
             username TEXT UNIQUE NOT NULL,
             password TEXT NOT NULL,
             role TEXT DEFAULT 'user'
@@ -28,7 +26,7 @@ def init_db():
 
     cursor.execute('''
         CREATE TABLE IF NOT EXISTS passwords (
-            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            id INTEGER PRIMARY KEY,
             username TEXT NOT NULL,
             login1 TEXT,
             website TEXT NOT NULL,
@@ -98,7 +96,7 @@ def load_user_passwords(username):
     return passwords
 
 
-# Декоратор для проверки аутентификации
+
 def login_required(f):
     def decorated_function(*args, **kwargs):
         if 'username' not in session:
